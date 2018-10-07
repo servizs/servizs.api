@@ -1,0 +1,6 @@
+https://medium.com/@nmdnhm/building-a-serverless-slack-integration-with-typescript-f2d5e862937b
+
+
+
+
+https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/
