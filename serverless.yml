@@ -51,7 +51,7 @@ resources:
       Properties: 
         AttributeDefinitions: 
           -
-            AttributeName: UerId
+            AttributeName: UserId
             AttributeType: S
             AttributeName: FirstName
             AttributeType: S
@@ -60,6 +60,8 @@ resources:
             AttributeName: EmailAddress
             AttributeType: S
             AttributeName: DateOfBirth
+            AttributeType: S
+            AttributeName: AddressId
             AttributeType: S
 
           KeySchema :
@@ -72,6 +74,42 @@ resources:
               WriteCapacityUnits: 1
 
             TableName: "User_Profle_${file(./config.yml):${self:custom.environment}.DB_PREFIX}"
+
+    AddressTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties: 
+        AttributeDefinitions: 
+          -
+            AttributeName: UserId
+            AttributeType: S
+            AttributeName: UnitNo
+            AttributeType: S
+            AttributeName: StreetNumber
+            AttributeType: S
+            AttributeName: StreetName
+            AttributeType: S
+            AttributeName: City
+            AttributeType: S
+            AttributeName: City
+            AttributeType: S
+            AttributeName: Province
+            AttributeType: S
+            AttributeName: Country
+            AttributeType: S
+            AttributeName: PostalCode
+            AttributeType: S
+
+          KeySchema :
+            -
+              AttributeName: UserId
+              KeyType: HASH
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+            TableName: "Address_${file(./config.yml):${self:custom.environment}.DB_PREFIX}"
 
 package:
   exclude:
