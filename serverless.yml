@@ -4,10 +4,12 @@ service:
 # Add the serverless-webpack plugin
 plugins:
   - serverless-webpack
-  - serverless-plugin-typescript
+  - serverless-dynamodb-local
   - serverless-offline
+
 custom:
   environment: dev
+  webpackIncludeModules: true
 
 provider:
   name: aws
@@ -17,7 +19,7 @@ provider:
   region: ${file(./config.yml):${self:custom.environment}.REGION}
   iamRoleStatements:
     - Effect: Allow
-      Action: 
+      Action:
         - dynamodb:DescribeTable
         - dynamodb:Query
         - dynamodb:Scan
@@ -25,22 +27,49 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${file(./config.yml):${self:custom.environment}.REGION}:*:*"
+      Resource: 'arn:aws:dynamodb:${file(./config.yml):${self:custom.environment}.REGION}:*:*'
 
-provider:
-  name: aws
-  runtime: nodejs8.10
-
+# ----------------- API-Config --------------------
 functions:
-  hello:
-    handler: handler.hello
+  # User APIs
+  get:
+    handler: src/user/handler.get
     events:
       - http:
+          path: user/{userId}
           method: get
-          path: hello
+          cors: true
 
+  put:
+    handler: src/user/handler.put
+    events:
+      - http:
+          path: user
+          method: put
+          cors: true
+  post:
+    handler: src/user/handler.post
+    events:
+      - http:
+          path: user
+          method: post
+          cors: true
 
+  address_update:
+    handler: src/user/handler.addressUpdate
+    events:
+      - http:
+          path: address
+          method: post
+          cors: true
 
+  search:
+    handler: src/search/handler.search
+    events:
+      - http:
+          path: search
+          method: post
+          cors: true
 # ------------ database-config -------------
 
 resources:
@@ -48,69 +77,117 @@ resources:
     UserProfleTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Delete
-      Properties: 
-        AttributeDefinitions: 
-          -
-            AttributeName: UserId
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
             AttributeType: S
-            AttributeName: FirstName
+          - AttributeName: FirstName
             AttributeType: S
-            AttributeName: LastName
+          - AttributeName: LastName
             AttributeType: S
-            AttributeName: EmailAddress
+          - AttributeName: EmailAddress
             AttributeType: S
-            AttributeName: DateOfBirth
+          - AttributeName: DateOfBirth
             AttributeType: S
-            AttributeName: AddressId
+          - AttributeName: PhoneNumber
+            AttributeType: S
+          - AttributeName: Picture
             AttributeType: S
 
-          KeySchema :
-            -
-              AttributeName: UserId
-              KeyType: HASH
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
 
             ProvisionedThroughput:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
 
-            TableName: "User_Profle_${file(./config.yml):${self:custom.environment}.DB_PREFIX}"
+            TableName: 'User_Profle_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
+
+    UserProfleAdditionalInfoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+          - AttributeName: MinimumHours
+            AttributeType: S
+          - AttributeName: MinimumCostPerHour
+            AttributeType: S
+          - AttributeName: Services
+            AttributeType: S
+          - AttributeName: Rating
+            AttributeType: S
+          - AttributeName: Badge
+            AttributeType: S
+          - AttributeName: CreatedTime
+            AttributeType: S
+          - AttributeName: ModifiedTime
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+            TableName: 'User_Profle_Additional_Info_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
 
     AddressTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Delete
-      Properties: 
-        AttributeDefinitions: 
-          -
-            AttributeName: UserId
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
             AttributeType: S
-            AttributeName: UnitNo
+          - AttributeName: UnitNo
             AttributeType: S
-            AttributeName: StreetNumber
+          - AttributeName: StreetNumber
             AttributeType: S
-            AttributeName: StreetName
+          - AttributeName: StreetName
             AttributeType: S
-            AttributeName: City
+          - AttributeName: City
             AttributeType: S
-            AttributeName: City
+          - AttributeName: City
             AttributeType: S
-            AttributeName: Province
+          - AttributeName: Province
             AttributeType: S
-            AttributeName: Country
+          - AttributeName: Country
             AttributeType: S
-            AttributeName: PostalCode
+          - AttributeName: PostalCode
             AttributeType: S
 
-          KeySchema :
-            -
-              AttributeName: UserId
-              KeyType: HASH
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
 
             ProvisionedThroughput:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
 
-            TableName: "Address_${file(./config.yml):${self:custom.environment}.DB_PREFIX}"
+            TableName: 'Address_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
 
-package:
-  exclude:
-    - node_modules/**/*
+    ReviewsTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+          - AttributeName: ReviewerId
+            AttributeType: S
+          - AttributeName: Rating
+            AttributeType: S
+          - AttributeName: Comments
+            AttributeType: S
+          - AttributeName: CreatedTime
+            AttributeType: S
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        TableName: 'Reviews_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'

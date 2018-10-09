@@ -183,3 +183,30 @@ functions:
               WriteCapacityUnits: 1
 
             TableName: "Customer_Profile_${file(./config.yml):${self:custom.stage}.DB_PREFIX}"
+
+
+
+/*
+module.exports = {
+  entry: slsw.lib.entries,
+  target: 'node',
+  externals: [nodeExternals()],
+  output: {
+    libraryTarget: 'commonjs',
+    path: path.join(__dirname, '.webpack'),
+    filename: '[name].js'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: [
+          {
+            loader: 'babel-loader'
+          }
+        ]
+      }
+    ]
+  }
+};
+*/

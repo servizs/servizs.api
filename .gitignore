@@ -1,6 +1,10 @@
 node_modules
-serverless
+.serverless
 aws-secrets
+.dynamodb
+.build
 
 
 notes.yml
+*.js
+*.js.map
