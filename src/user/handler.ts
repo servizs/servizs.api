@@ -2,10 +2,11 @@ import { APIGatewayEvent, Handler } from 'aws-lambda';
 import * as apiConfig from '../shared/api-config';
 import { config } from '../enviornment/enviornment';
 import * as uuid from 'uuid';
-
+import * as _ from 'lodash';
 import { dynamoDb } from '../shared/aws-initialize';
 import * as validator from '../shared/validator';
 import { User, Address } from '../models/user';
+import { skipNullAttributes } from '../shared/utilities';
 
 export const get: Handler = async (event: APIGatewayEvent) => {
   console.log('event.pathParameters!.userId ' + event.pathParameters!.userId);
@@ -119,7 +120,7 @@ export const post: Handler = async (event: APIGatewayEvent) => {
     console.error('Request is empty.');
     return {
       statusCode: 400,
-      body: { error: 'Missing mandatory fields.' },
+      body: JSON.stringify({ error: 'Missing mandatory fields.' }),
       headers: apiConfig.headers
     };
   }
@@ -127,27 +128,22 @@ export const post: Handler = async (event: APIGatewayEvent) => {
   const timeStamp = new Date().getTime();
 
   try {
+    const attributes = {
+      firstName: { Action: 'PUT', Value: data.firstName },
+      lastName: { Action: 'PUT', Value: data.lastName },
+      dateOfBirth: { Action: 'PUT', Value: data.dateOfBirth },
+      photoPath: { Action: 'PUT', Value: data.picture },
+      phoneNumber: { Action: 'PUT', Value: data.phoneNumber },
+      ModifiedTime: { Action: 'PUT', Value: timeStamp }
+    };
+
     const params = {
       TableName: `User_Profle_${config.enviornment}`,
       Key: {
         UserId: data.userId
       },
 
-      UpdateExpression: `set 
-                firstName = :firstName, 
-                lastName = :lastName, 
-                dateOfBirth = :dateOfBirth,
-                photoPath = :photoPath,
-                phoneNumber = :phoneNumber,
-                modifiedTime = :modifiedTime`,
-      ExpressionAttributeValues: {
-        ':firstName': data.firstName,
-        ':lastName': data.lastName,
-        ':dateOfBirth': data.dateOfBirth,
-        ':phoneNumber': data.phoneNumber,
-        ':modifiedTime': timeStamp,
-        ':photoPath': data.picture
-      }
+      AttributeUpdates: skipNullAttributes(attributes)
     };
 
     await dynamoDb.update(params).promise();
@@ -178,7 +174,7 @@ export const post: Handler = async (event: APIGatewayEvent) => {
 
     return {
       statusCode: 500,
-      body: { error: `Couldnt update the customer ${data}.` },
+      body: JSON.stringify({ error: `Couldnt update the customer ${data}.` }),
       headers: apiConfig.headers
     };
   }
@@ -230,6 +226,17 @@ async function updateAddress(data: Address, userId: string) {
   const timeStamp = new Date().getTime();
 
   if (response.Item) {
+    const attributes = {
+      unitNo: { Action: 'PUT', Value: data.unitNo },
+      streetNumber: { Action: 'PUT', Value: data.streetNumber },
+      streetName: { Action: 'PUT', Value: data.streetName },
+      city: { Action: 'PUT', Value: data.city },
+      province: { Action: 'PUT', Value: data.province },
+      country: { Action: 'PUT', Value: data.country },
+      postalCode: { Action: 'PUT', Value: data.postalCode },
+      ModifiedTime: { Action: 'PUT', Value: timeStamp }
+    };
+
     // post
     const postParams = {
       TableName: tableName,
@@ -237,26 +244,7 @@ async function updateAddress(data: Address, userId: string) {
         UserId: userId
       },
 
-      UpdateExpression: `set 
-                UnitNo = :unitNo, 
-                StreetNumber = :streetNumber, 
-                StreetName = :streetName,
-                City = :city, 
-                Province = :province,
-                Country = :country
-                PostalCode = :postalCode,
-                ModifiedTime = :modifiedTime
-                `,
-      ExpressionAttributeValues: {
-        ':unitNo': data.unitNo,
-        ':streetNumber': data.streetNumber,
-        ':streetName': data.streetName,
-        ':city': data.city,
-        ':province': data.province,
-        ':country': data.country,
-        ':postalCode': data.postalCode,
-        ':modifiedTime': timeStamp
-      }
+      AttributeUpdates: skipNullAttributes(attributes)
     };
 
     await dynamoDb.update(postParams).promise();
@@ -277,7 +265,7 @@ async function updateAddress(data: Address, userId: string) {
 }
 
 async function updateAdditionalInfo(data: any) {
-  const tableName = `User_Profle_Additional_Info${config.enviornment}`;
+  const tableName = `User_Profle_Additional_Info_${config.enviornment}`;
   const params = {
     TableName: tableName,
     Key: {
@@ -292,31 +280,28 @@ async function updateAdditionalInfo(data: any) {
 
   if (response.Item) {
     // post
+    console.log('--------- + additional info post');
+    const attributes = {
+      perHourCost: { Action: 'PUT', Value: perHourCost },
+      currency: { Action: 'PUT', Value: currency },
+      minimumWorkHours: { Action: 'PUT', Value: minimumWorkHours },
+      stripeAccountId: { Action: 'PUT', Value: stripeAccountId },
+      ModifiedTime: { Action: 'PUT', timeStamp }
+    };
+
     const postParams = {
       TableName: tableName,
       Key: {
         UserId: userId
       },
 
-      UpdateExpression: `set 
-                PerHourCost = :perHourCost, 
-                Currency = :currency, 
-                MinimumWorkHours = :minimumWorkHours,
-                ModifiedTime = :modifiedTime,
-                StripeAccountId = :stripeAccountId`,
-      ExpressionAttributeValues: {
-        ':perHourCost': perHourCost,
-        ':currency': currency,
-        ':minimumWorkHours': minimumWorkHours,
-        ':stripeAccountId': stripeAccountId,
-        ':modifiedTime': timeStamp
-      }
+      AttributeUpdates: skipNullAttributes(attributes)
     };
 
     await dynamoDb.update(postParams).promise();
   } else {
     // put
-
+    console.log('--------- + additional info put');
     const putParams = {
       TableName: tableName,
       Item: {
