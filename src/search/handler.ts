@@ -5,7 +5,7 @@ import { dynamoDb } from '../shared/aws-initialize';
 import * as validator from '../shared/validator';
 import { SearchParams, TaskerAdditionalinfo } from '../models/user';
 
-export const addressUpdate: Handler = async (event: APIGatewayEvent) => {
+export const search: Handler = async (event: APIGatewayEvent) => {
   const data: SearchParams = validator.isRequestValid(event);
 
   if (data['statusCode']) {
@@ -37,79 +37,81 @@ export const addressUpdate: Handler = async (event: APIGatewayEvent) => {
       };
     }
 
-    const searchResult: any[] = [];
-    addressResponse.Items.forEach(async address => {
-      const additionalInfoParams = {
-        TableName: apiConfig.DbTable.UserAdditionalInfo,
-        Key: {
-          userId: address.userId
-        }
-      };
-
-      const additionalInfo = await dynamoDb.get(additionalInfoParams).promise();
-
-      if (!additionalInfo || !additionalInfo.Item) {
-        console.error(additionalInfo);
-        console.error(`Couldnt retrieve the user - ${address.userId} - additional Information`);
-        return;
-      }
-
-      const costRanges = data.costRange.split(' - ');
-
-      if ((additionalInfo.Item as TaskerAdditionalinfo).perHourCost <= +costRanges[2]) {
-        const userParams = {
-          TableName: apiConfig.DbTable.UserProfile,
+    // const searchResult: any[] = [];
+    const searchResult: any[] = await Promise.all(
+      addressResponse.Items.map(async address => {
+        const additionalInfoParams = {
+          TableName: apiConfig.DbTable.UserAdditionalInfo,
           Key: {
-            userId: address.userId
+            UserId: address.UserId
           }
         };
 
-        const userProfile = await dynamoDb.get(userParams).promise();
+        const additionalInfo = await dynamoDb.get(additionalInfoParams).promise();
 
-        if (!userProfile || !userProfile.Item) {
-          console.error(userProfile);
-          console.error(`Couldnt retrieve the user - ${address.userId} - profile`);
+        if (!additionalInfo || !additionalInfo.Item) {
+          console.error(additionalInfo);
+          console.error(`Couldnt retrieve the user - ${address.UserId} - additional Information`);
           return;
         }
 
-        const { firtName, lastName, picture, emailAddress, phoneNumber } = userProfile.Item;
+        const costRanges = data.costRange.split(' - ');
 
-        const reviewParams = {
-          TableName: apiConfig.DbTable.Reviews,
-          FilterExpression: 'userId = :userId',
-          ExpressionAttributeValues: {
-            ':userId': address.userId
+        if ((additionalInfo.Item as TaskerAdditionalinfo).perHourCost <= +costRanges[1]) {
+          const userParams = {
+            TableName: apiConfig.DbTable.UserProfile,
+            Key: {
+              UserId: address.UserId
+            }
+          };
+
+          const userProfile = await dynamoDb.get(userParams).promise();
+
+          if (!userProfile || !userProfile.Item) {
+            console.error(userProfile);
+            console.error(`Couldnt retrieve the user - ${address.UserId} - profile`);
+            return;
           }
-        };
 
-        const reviews = await dynamoDb.scan(reviewParams).promise();
+          const { firstName, lastName, picture, emailAddress, phoneNumber } = userProfile.Item;
 
-        if (reviews.Items) {
-          searchResult.push({
-            ...addressResponse,
-            ...additionalInfo.Item,
-            firtName,
-            lastName,
-            picture,
-            emailAddress,
-            phoneNumber,
-            rating: reviews.Items['rating'],
-            comments: reviews.Items['comments']
-          });
-        } else {
-          searchResult.push({
-            ...addressResponse,
-            ...additionalInfo.Item,
-            firtName,
-            lastName,
-            picture,
-            emailAddress,
-            phoneNumber
-          });
+          const reviewParams = {
+            TableName: apiConfig.DbTable.Reviews,
+            FilterExpression: 'UserId = :userId',
+            ExpressionAttributeValues: {
+              ':userId': address.UserId
+            }
+          };
+
+          const reviews = await dynamoDb.scan(reviewParams).promise();
+          console.log(`...........------- ${JSON.stringify(userProfile.Item)}`);
+          if (reviews.Items.length !== 0) {
+            return {
+              ...addressResponse,
+              ...additionalInfo.Item,
+              firstName,
+              lastName,
+              picture,
+              emailAddress,
+              phoneNumber,
+              rating: reviews.Items['rating'],
+              comments: reviews.Items['comments']
+            };
+          } else {
+            return {
+              ...addressResponse,
+              ...additionalInfo.Item,
+              firstName,
+              lastName,
+              picture,
+              emailAddress,
+              phoneNumber
+            };
+          }
         }
-      }
-    });
-
+      })
+    );
+    console.log('*** SearchResut 2 ' + JSON.stringify(searchResult));
     return {
       statusCode: 200,
       body: JSON.stringify(searchResult),
@@ -124,3 +126,5 @@ export const addressUpdate: Handler = async (event: APIGatewayEvent) => {
     };
   }
 };
+
+function searchResultMap(addressResponse: any) {}

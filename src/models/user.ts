@@ -26,6 +26,7 @@ export interface TaskerAdditionalinfo {
   currency: string; // default it based on the location.
   minimumWorkHours: number;
   stripeAccountId?: string;
+  services: any[];
 
   // might need avaialbilty params like weekends, week days, certain hours etc.
   // Also, isInsured, isCertitifed, profileValidatedREfNo? etc. TBA

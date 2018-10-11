@@ -276,12 +276,13 @@ async function updateAdditionalInfo(data: any) {
   const response = await dynamoDb.get(params).promise();
   const timeStamp = new Date().getTime();
 
-  const { userId, perHourCost, currency, minimumWorkHours, stripeAccountId } = data;
+  const { userId, perHourCost, currency, minimumWorkHours, stripeAccountId, services } = data;
 
   if (response.Item) {
     // post
     console.log('--------- + additional info post');
     const attributes = {
+      services: { Action: 'PUT', Value: data.services },
       perHourCost: { Action: 'PUT', Value: perHourCost },
       currency: { Action: 'PUT', Value: currency },
       minimumWorkHours: { Action: 'PUT', Value: minimumWorkHours },
@@ -310,6 +311,7 @@ async function updateAdditionalInfo(data: any) {
         currency,
         minimumWorkHours,
         stripeAccountId,
+        services,
         createdTime: timeStamp,
         modifiedTime: timeStamp
       }
