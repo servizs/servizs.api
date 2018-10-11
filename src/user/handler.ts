@@ -43,11 +43,11 @@ export const put: Handler = async (event: APIGatewayEvent) => {
     return data;
   }
 
-  if (isRequestValid(data)) {
+  if (!isRequestValid(data)) {
     console.error('Request is empty.');
     return {
       statusCode: 400,
-      body: { error: 'Missing mandatory fields.' },
+      body: JSON.stringify({ error: 'Missing mandatory fields.' }),
       headers: apiConfig.headers
     };
   }
@@ -58,7 +58,7 @@ export const put: Handler = async (event: APIGatewayEvent) => {
   const params = {
     TableName: `User_Profle_${config.enviornment}`,
     Item: {
-      userId: userId,
+      UserId: userId,
       ...data,
       createdTime: timeStamp,
       modifiedTime: timeStamp
@@ -71,9 +71,9 @@ export const put: Handler = async (event: APIGatewayEvent) => {
     if (profile) {
       return {
         statusCode: 409,
-        body: {
+        body: JSON.stringify({
           errorMessage: `The user email address or Id ${data.emailAddress} already exists.`
-        },
+        }),
         headers: apiConfig.headers
       };
     }
@@ -86,12 +86,12 @@ export const put: Handler = async (event: APIGatewayEvent) => {
       country: data.country
     };
 
-    await updateAddress(address, data.userId);
+    await updateAddress(address, userId);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        customerId: params.Item.customerId
+        userId: userId
       }),
       headers: apiConfig.headers
     };
@@ -100,7 +100,7 @@ export const put: Handler = async (event: APIGatewayEvent) => {
 
     return {
       statusCode: 500,
-      body: { error: `Couldnt create the customer ${data}.` },
+      body: JSON.stringify({ error: `Couldnt create the customer ${data}.` }),
       headers: apiConfig.headers
     };
   }
@@ -129,7 +129,7 @@ export const post: Handler = async (event: APIGatewayEvent) => {
     const params = {
       TableName: `User_Profle_${config.enviornment}`,
       Key: {
-        userId: data.userId
+        UserId: data.userId
       },
 
       UpdateExpression: `set 
@@ -208,6 +208,7 @@ export const addressUpdate: Handler = async (event: APIGatewayEvent) => {
 };
 
 function isRequestValid(data: User): boolean {
+  console.log('-----' + JSON.stringify(data));
   if (!data.firstName || !data.lastName || !data.city || !data.province || !data.country || !data.emailAddress) {
     return false;
   }
@@ -216,23 +217,23 @@ function isRequestValid(data: User): boolean {
 }
 
 async function updateAddress(data: Address, userId: string) {
-  const tableName = `Address${config.enviornment}`;
+  const tableName = `Address_${config.enviornment}`;
   const params = {
     TableName: tableName,
     Key: {
-      userId: userId
+      UserId: userId
     }
   };
 
   const response = await dynamoDb.get(params).promise();
   const timeStamp = new Date().getTime();
 
-  if (response) {
+  if (response.Item) {
     // post
     const postParams = {
       TableName: tableName,
       Key: {
-        userId
+        UserId: userId
       },
 
       UpdateExpression: `set 
@@ -263,7 +264,7 @@ async function updateAddress(data: Address, userId: string) {
     const putParams = {
       TableName: tableName,
       Item: {
-        userId,
+        UserId: userId,
         ...data,
         createdTime: timeStamp,
         modifiedTime: timeStamp
@@ -279,7 +280,7 @@ async function updateAdditionalInfo(data: any) {
   const params = {
     TableName: tableName,
     Key: {
-      userId: data.userId
+      UserId: data.userId
     }
   };
 
@@ -293,7 +294,7 @@ async function updateAdditionalInfo(data: any) {
     const postParams = {
       TableName: tableName,
       Key: {
-        userId
+        UserId: userId
       },
 
       UpdateExpression: `set 
@@ -318,7 +319,7 @@ async function updateAdditionalInfo(data: any) {
     const putParams = {
       TableName: tableName,
       Item: {
-        userId,
+        UserId: userId,
         perHourCost,
         currency,
         minimumWorkHours,
@@ -336,7 +337,7 @@ async function getProfile(userId: string) {
   const params = {
     TableName: `User_Profle_${config.enviornment}`,
     Key: {
-      userId: userId
+      UserId: userId
     }
   };
 
@@ -353,6 +354,7 @@ async function getProfile(userId: string) {
 }
 
 async function getProfileByEmail(emailAddress: string) {
+  console.log('------ Get Profile By Email ------');
   const params = {
     TableName: `User_Profle_${config.enviornment}`,
     FilterExpression: 'emailAddress = :emailAddress',
@@ -362,8 +364,8 @@ async function getProfileByEmail(emailAddress: string) {
   };
 
   const response = await dynamoDb.scan(params).promise();
-
-  if (!response) {
+  console.log('------ Get Profile By Email - Response ------' + JSON.stringify(response));
+  if (response.Items.length === 0) {
     console.error(response);
     console.error(`Error while retrieving the  user - ${emailAddress} ${JSON.stringify(response)}`);
 
