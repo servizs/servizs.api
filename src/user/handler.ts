@@ -8,6 +8,7 @@ import * as validator from '../shared/validator';
 import { User, Address } from '../models/user';
 
 export const get: Handler = async (event: APIGatewayEvent) => {
+  console.log('event.pathParameters!.userId ' + event.pathParameters!.userId);
   if (!event.pathParameters!.userId) {
     return {
       statusCode: 400,
@@ -22,15 +23,15 @@ export const get: Handler = async (event: APIGatewayEvent) => {
     return {
       statusCode: 404,
       headers: apiConfig.headers,
-      body: {
+      body: JSON.stringify({
         errorMessage: `Couldnt retrieve the details for user ${event.pathParameters!.userId}`
-      }
+      })
     };
   }
 
   return {
     statusCode: 200,
-    body: JSON.stringify(response.Item),
+    body: JSON.stringify(response),
     headers: apiConfig.headers
   };
 };
@@ -342,7 +343,6 @@ async function getProfile(userId: string) {
   };
 
   const response = await dynamoDb.get(params).promise();
-
   if (!response) {
     console.error(response);
     console.error(`Error while retrieving the  Customer - ${userId} ${JSON.stringify(response)}`);
