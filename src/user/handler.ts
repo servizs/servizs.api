@@ -283,9 +283,9 @@ async function updateAdditionalInfo(data: any) {
     console.log('--------- + additional info post');
     const attributes = {
       services: { Action: 'PUT', Value: data.services },
-      perHourCost: { Action: 'PUT', Value: perHourCost },
+      perHourCost: { Action: 'PUT', Value: +perHourCost },
       currency: { Action: 'PUT', Value: currency },
-      minimumWorkHours: { Action: 'PUT', Value: minimumWorkHours },
+      minimumWorkHours: { Action: 'PUT', Value: +minimumWorkHours },
       stripeAccountId: { Action: 'PUT', Value: stripeAccountId },
       ModifiedTime: { Action: 'PUT', timeStamp }
     };

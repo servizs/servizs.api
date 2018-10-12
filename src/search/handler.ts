@@ -61,6 +61,7 @@ export const search: Handler = async (event: APIGatewayEvent) => {
           if ((additionalInfo.Item as TaskerAdditionalinfo).perHourCost <= +costRanges[1]) {
             const userParams = {
               TableName: apiConfig.DbTable.UserProfile,
+              AttributesToGet: ['firstName', 'lastName', 'picture'],
               Key: {
                 UserId: address.UserId
               }
@@ -74,10 +75,11 @@ export const search: Handler = async (event: APIGatewayEvent) => {
               return;
             }
 
-            const { firstName, lastName, picture, emailAddress, phoneNumber } = userProfile.Item;
+            const { firstName, lastName, picture } = userProfile.Item;
 
             const reviewParams = {
               TableName: apiConfig.DbTable.Reviews,
+              // AttributesToGet: ['firstName', 'lastName', 'picture'], - TODO add this.
               FilterExpression: 'UserId = :userId',
               ExpressionAttributeValues: {
                 ':userId': address.UserId
@@ -85,7 +87,6 @@ export const search: Handler = async (event: APIGatewayEvent) => {
             };
 
             const reviews = await dynamoDb.scan(reviewParams).promise();
-            console.log(`...........------- ${JSON.stringify(userProfile.Item)}`);
             if (reviews.Items.length !== 0) {
               return {
                 ...address,
@@ -93,8 +94,6 @@ export const search: Handler = async (event: APIGatewayEvent) => {
                 firstName,
                 lastName,
                 picture,
-                emailAddress,
-                phoneNumber,
                 rating: reviews.Items['rating'],
                 comments: reviews.Items['comments']
               };
@@ -104,16 +103,14 @@ export const search: Handler = async (event: APIGatewayEvent) => {
                 ...additionalInfo.Item,
                 firstName,
                 lastName,
-                picture,
-                emailAddress,
-                phoneNumber
+                picture
               };
             }
           }
         }
       })
     );
-    console.log('*** SearchResut 2 ' + JSON.stringify(searchResult));
+
     return {
       statusCode: 200,
       body: JSON.stringify(searchResult),
