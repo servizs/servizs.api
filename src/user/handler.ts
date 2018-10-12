@@ -7,6 +7,7 @@ import { dynamoDb } from '../shared/aws-initialize';
 import * as validator from '../shared/validator';
 import { User, Address } from '../models/user';
 import { skipNullAttributes } from '../shared/utilities';
+import { ScanInput } from 'aws-sdk/clients/dynamodb';
 
 export const get: Handler = async (event: APIGatewayEvent) => {
   console.log('event.pathParameters!.userId ' + event.pathParameters!.userId);
@@ -69,8 +70,8 @@ export const put: Handler = async (event: APIGatewayEvent) => {
 
   try {
     // check for existing user.
-    const profile = await getProfileByEmail(data.emailAddress);
-    if (profile) {
+    const profileCount = await getProfileByEmail(data.emailAddress);
+    if (profileCount > 0) {
       return {
         statusCode: 409,
         body: JSON.stringify({
@@ -352,12 +353,5 @@ async function getProfileByEmail(emailAddress: string) {
 
   const response = await dynamoDb.scan(params).promise();
   console.log('------ Get Profile By Email - Response ------' + JSON.stringify(response));
-  if (response.Items.length === 0) {
-    console.error(response);
-    console.error(`Error while retrieving the  user - ${emailAddress} ${JSON.stringify(response)}`);
-
-    return null;
-  }
-
-  return response.Items;
+  return response.Count;
 }
