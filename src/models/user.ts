@@ -49,3 +49,33 @@ export interface Reviews {
   rating: number;
   comments: any[];
 }
+
+export interface Order {
+  orderId: string;
+  taskerId: string;
+  customerId: string;
+  isCompleted: boolean;
+  completionDate?: string;
+  totalCost?: number;
+  currency: string;
+  status: OrderStatus; // Always Completed Or Cancelled
+  startTime?: string;
+  endTime?: string;
+  expectedCost: number;
+  totalWorkHours?: number;
+  scheduledDate: string;
+  scheduledTime: string;
+  scheduledWorkHours: string; // always provide contigency to complete work and travel to next site.
+  statusCode?: string;
+  serviceType: string;
+  createdTime: string;
+  modifiedTime: string;
+}
+
+export enum OrderStatus {
+  Completed = 'COMPLETED',
+  Pending = 'PENDING',
+  InProgress = 'INPROGRESS',
+  Cancelled = 'CANCELLED',
+  ReScheduled = 'RESCHEDULED '
+}

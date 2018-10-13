@@ -7,7 +7,6 @@ import { dynamoDb } from '../shared/aws-initialize';
 import * as validator from '../shared/validator';
 import { User, Address } from '../models/user';
 import { skipNullAttributes } from '../shared/utilities';
-import { ScanInput } from 'aws-sdk/clients/dynamodb';
 
 export const get: Handler = async (event: APIGatewayEvent) => {
   console.log('event.pathParameters!.userId ' + event.pathParameters!.userId);
