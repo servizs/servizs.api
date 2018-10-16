@@ -1,0 +1,198 @@
+service:
+  name: servizs-api
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  environment: dev
+  webpackIncludeModules: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: default # AWS CLI profile name
+  stage: ${self:custom.environment}
+  region: ${file(./config.yml):${self:custom.environment}.REGION}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 'arn:aws:dynamodb:${file(./config.yml):${self:custom.environment}.REGION}:*:*'
+
+# ----------------- API-Config --------------------
+functions:
+  # User APIs
+  get:
+    handler: src/user/handler.get
+    events:
+      - http:
+          path: user/{userId}
+          method: get
+          cors: true
+
+  put:
+    handler: src/user/handler.put
+    events:
+      - http:
+          path: user
+          method: put
+          cors: true
+  post:
+    handler: src/user/handler.post
+    events:
+      - http:
+          path: user
+          method: post
+          cors: true
+
+  address_update:
+    handler: src/user/handler.addressUpdate
+    events:
+      - http:
+          path: address
+          method: post
+          cors: true
+  # Search APIS
+  search:
+    handler: src/search/handler.search
+    events:
+      - http:
+          path: search
+          method: post
+          cors: true
+
+  # order APIs
+
+  get_order:
+    handler: src/order/handler.getByParams
+    events:
+      - http:
+          path: order/{id}/{status}/{userType}
+          method: get
+          cors: true
+
+  get_order_byId:
+    handler: src/order/handler.get
+    events:
+      - http:
+          path: order/{id}
+          method: get
+          cors: true
+
+  put_order:
+    handler: src/order/handler.put
+    events:
+      - http:
+          path: order
+          method: put
+          cors: true
+
+  post_order:
+    handler: src/order/handler.post
+    events:
+      - http:
+          path: order
+          method: post
+          cors: true
+# ------------ database-config -------------
+
+resources:
+  Resources:
+    UserProfleTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        TableName: 'User_Profle_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
+
+    UserProfleAdditionalInfoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        TableName: 'User_Profle_Additional_Info_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
+
+    AddressTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        TableName: 'Address_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
+
+    ReviewsTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: ReviewId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: ReviewId
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        TableName: 'Reviews_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'
+
+    OrderTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: orderId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: orderId
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        TableName: 'Order_${file(./config.yml):${self:custom.environment}.DB_PREFIX}'

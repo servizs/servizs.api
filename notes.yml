@@ -1,0 +1,212 @@
+
+## NOT USED
+  provider:
+  name: aws
+  runtime: nodejs8.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action: 
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+
+
+
+  environment: 
+    APP_SECRET: ${file(./config.yml):${self:custom.stage}.APP_SECRET}
+    DB_PREFIX: ${file(./config.yml):${self:custom.stage}.DB_PREFIX}
+
+
+
+# ----------------- API-Config --------------------
+functions:
+# Service provider APIs
+  create: 
+    handler: service-provider/create.create
+    events: 
+      - http:
+          path: serviceprovider
+          method: put
+          cors: true
+
+  get: 
+    handler: service-provider/get.get
+    events: 
+      - http:
+          path: serviceprovider/{ServiceProviderId}
+          method: get
+          cors: true
+
+  list: 
+    handler: service-provider/list.list
+    events: 
+      - http:
+          path: serviceprovider
+          method: get
+          cors: true
+
+  update: 
+    handler: service-provider/update.update
+    events: 
+      - http:
+          path: serviceprovider/{ServiceProviderId}
+          method: post
+          cors: true
+
+# End Customer APIs
+  create: 
+    handler: customer/create.create
+    events: 
+      - http:
+          path: customer
+          method: put
+          cors: true
+
+  get: 
+    handler: customer/get.get
+    events: 
+      - http:
+          path: customer/{ServiceProviderId}
+          method: get
+          cors: true
+
+  list: 
+    handler: customer/list.list
+    events: 
+      - http:
+          path: customer
+          method: get
+          cors: true
+
+  update: 
+    handler: customer/update.update
+    events: 
+      - http:
+          path: customer/{customerId}
+          method: post
+          cors: true
+
+  # SearchServices API
+  services: 
+    handler: services/search.search
+    event: 
+      - http: 
+          path: services/search
+          method: post
+          cors: true
+
+    
+
+
+
+    ServiceProviderInfoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties: 
+        AttributeDefinitions: 
+          -
+            AttributeName: ServiceProviderId
+            AttributeType: S
+
+          KeySchema :
+            -
+              AttributeName: ServiceProviderId
+              KeyType: HASH
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+            TableName: "Service_Provider_Info_${file(./config.yml):${self:custom.stage}.DB_PREFIX}"
+
+    ServiceProviderScheduleTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties: 
+        AttributeDefinitions: 
+          -
+            AttributeName: ServiceProviderId
+            AttributeType: S
+
+          KeySchema :
+            -
+              AttributeName: ServiceProviderId
+              KeyType: HASH
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+            TableName: "Service_Provider_Schedule"
+
+    ServiceProviderScheduleHistoryTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties: 
+        AttributeDefinitions: 
+          -
+            AttributeName: ServiceProviderId
+            AttributeType: S
+
+          KeySchema :
+            -
+              AttributeName: ServiceProviderId
+              KeyType: HASH
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+            TableName: "Service_Provider_Schedule_History_${file(./config.yml):${self:custom.stage}.DB_PREFIX}"
+
+    CustomerProfleTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties: 
+        AttributeDefinitions: 
+          -
+            AttributeName: ServiceProviderId
+            AttributeType: S
+
+          KeySchema :
+            -
+              AttributeName: ServiceProviderId
+              KeyType: HASH
+
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+            TableName: "Customer_Profile_${file(./config.yml):${self:custom.stage}.DB_PREFIX}"
+
+
+
+/*
+module.exports = {
+  entry: slsw.lib.entries,
+  target: 'node',
+  externals: [nodeExternals()],
+  output: {
+    libraryTarget: 'commonjs',
+    path: path.join(__dirname, '.webpack'),
+    filename: '[name].js'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: [
+          {
+            loader: 'babel-loader'
+          }
+        ]
+      }
+    ]
+  }
+};
+*/

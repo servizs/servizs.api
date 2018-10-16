@@ -1,0 +1,7 @@
+dev:
+  APP_SECRET: 8f9BSmvFJeCsmHTFFPZl5IXm62cdtaoPfaS2K2Xm
+  DB_PREFIX: dev
+  REGION: us-east-2
+prod:
+  APP_SECRET: secret_key_here
+  DB_PREFIX: prod
