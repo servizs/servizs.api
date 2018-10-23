@@ -44,7 +44,7 @@ export const search: Handler = async (event: APIGatewayEvent) => {
           const additionalInfoParams = {
             TableName: apiConfig.DbTable.UserAdditionalInfo,
             Key: {
-              UserId: address.UserId
+              userId: address.userId
             }
           };
 
@@ -52,7 +52,7 @@ export const search: Handler = async (event: APIGatewayEvent) => {
 
           if (!additionalInfo || !additionalInfo.Item) {
             console.error(additionalInfo);
-            console.error(`Couldnt retrieve the user - ${address.UserId} - additional Information`);
+            console.error(`Couldnt retrieve the user - ${address.userId} - additional Information`);
             return;
           }
 
@@ -63,7 +63,7 @@ export const search: Handler = async (event: APIGatewayEvent) => {
               TableName: apiConfig.DbTable.UserProfile,
               AttributesToGet: ['firstName', 'lastName', 'picture'],
               Key: {
-                UserId: address.UserId
+                userId: address.userId
               }
             };
 
@@ -71,7 +71,7 @@ export const search: Handler = async (event: APIGatewayEvent) => {
 
             if (!userProfile || !userProfile.Item) {
               console.error(userProfile);
-              console.error(`Couldnt retrieve the user - ${address.UserId} - profile`);
+              console.error(`Couldnt retrieve the user - ${address.userId} - profile`);
               return;
             }
 
@@ -80,9 +80,9 @@ export const search: Handler = async (event: APIGatewayEvent) => {
             const reviewParams = {
               TableName: apiConfig.DbTable.Reviews,
               // AttributesToGet: ['firstName', 'lastName', 'picture'], - TODO add this.
-              FilterExpression: 'UserId = :userId',
+              FilterExpression: 'userId = :userId',
               ExpressionAttributeValues: {
-                ':userId': address.UserId
+                ':userId': address.userId
               }
             };
 

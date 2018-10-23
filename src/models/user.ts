@@ -5,7 +5,7 @@ export interface User extends Address {
   emailAddress: string;
   createdTime: string;
   modifiedTime: string;
-  userId?: string;
+  uid?: string;
   phoneNumber?: string;
   picture?: string;
 }
@@ -18,7 +18,7 @@ export interface Address {
   province: string;
   country: string;
   postalCode?: string;
-  userId?: string;
+  uid?: string;
 }
 
 export interface TaskerAdditionalinfo {

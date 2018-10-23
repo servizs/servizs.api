@@ -112,11 +112,11 @@ resources:
       DeletionPolicy: Delete
       Properties:
         AttributeDefinitions:
-          - AttributeName: UserId
+          - AttributeName: userId
             AttributeType: S
 
         KeySchema:
-          - AttributeName: UserId
+          - AttributeName: userId
             KeyType: HASH
 
         ProvisionedThroughput:
@@ -130,11 +130,11 @@ resources:
       DeletionPolicy: Delete
       Properties:
         AttributeDefinitions:
-          - AttributeName: UserId
+          - AttributeName: userId
             AttributeType: S
 
         KeySchema:
-          - AttributeName: UserId
+          - AttributeName: userId
             KeyType: HASH
 
         ProvisionedThroughput:
@@ -148,11 +148,11 @@ resources:
       DeletionPolicy: Delete
       Properties:
         AttributeDefinitions:
-          - AttributeName: UserId
+          - AttributeName: userId
             AttributeType: S
 
         KeySchema:
-          - AttributeName: UserId
+          - AttributeName: userId
             KeyType: HASH
 
         ProvisionedThroughput:
