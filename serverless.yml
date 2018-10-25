@@ -54,6 +54,14 @@ functions:
           method: post
           cors: true
 
+  postOauth:
+    handler: src/user/handler.postOauth
+    events:
+      - http:
+          path: user/postOauth
+          method: post
+          cors: true
+
   address_update:
     handler: src/user/handler.addressUpdate
     events:

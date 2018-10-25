@@ -28,6 +28,12 @@ export const post: Handler = async (event: APIGatewayEvent) => {
   return await userService.post(event);
 };
 
+export const postOauth: Handler = async (event: APIGatewayEvent) => {
+  console.warn('postOauth');
+  const userService = new UserService();
+  return await userService.postOAuth(event);
+};
+
 export const addressUpdate: Handler = async (event: APIGatewayEvent) => {
   const addressService = new AddressService();
   return await addressService.updateAddress(event);

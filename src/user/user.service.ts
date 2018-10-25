@@ -135,7 +135,58 @@ export class UserService {
     }
   }
 
-  async post(event: APIGatewayEvent, isOAuth = false) {
+  async postOAuth(event: APIGatewayEvent) {
+    const data: User = validator.isRequestValid(event);
+
+    if (data['statusCode']) {
+      // invalid request.
+      return data;
+    }
+
+    if (!data.uid) {
+      console.error('Request is empty.');
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing email address in the POST request.' }),
+        headers: apiConfig.headers
+      };
+    }
+
+    try {
+      const profile = await this.userData.getProfileByEmail(data.emailAddress);
+
+      if (profile && profile.length > 0) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ userId: profile[0].userId }),
+          headers: apiConfig.headers
+        };
+      } else {
+        // Insert
+        // by OAuth
+        await this.userData.insertUser(data);
+      }
+    } catch (error) {
+      if (typeof error === 'string') {
+        const errorData = JSON.parse(error);
+        return {
+          statusCode: errorData.statusCode,
+          body: JSON.stringify({ error: errorData.errorMessage }),
+          headers: apiConfig.headers
+        };
+      }
+
+      console.error(`Couldnt create/update the user ${JSON.stringify(data)}. ${JSON.stringify(error)}`);
+
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: `Couldnt create/update the customer ${data}.` }),
+        headers: apiConfig.headers
+      };
+    }
+  }
+
+  async post(event: APIGatewayEvent) {
     const data: User = validator.isRequestValid(event);
 
     if (data['statusCode']) {
@@ -176,10 +227,6 @@ export class UserService {
           body: JSON.stringify({ status: 'Success' }),
           headers: apiConfig.headers
         };
-      } else {
-        // Insert
-        // by OAuth
-        await this.userData.insertUser(data);
       }
     } catch (error) {
       if (typeof error === 'string') {
